@@ -5,22 +5,25 @@ using System.Globalization;
 using System.Web.Mvc;
 using System.Web.Security;
 
-namespace MvcApplication4.Models
+namespace SLT.Models
 {
     public class SearchModel
     {
         [Display(Name = "שם פרטי ")]
-        public string First { get; set; }
+        public string firstName { get; set; }
 
         [Display(Name = "שם משפחה: ")]
-        public string Last { get; set; }
+        public string lastName { get; set; }
 
 
         [Display(Name = "יום  ")]
         public string Day { get; set; }
 
-        [Display(Name = "שעה ")]
-        public string Hour { get; set; }
+        [Display(Name = "משעה ")]
+        public string FromHour { get; set; }
+
+        [Display(Name = "עד שעה ")]
+        public string ToHour { get; set; }
 
         [Display(Name = "אזור ")]
         public string City { get; set; }
@@ -33,5 +36,8 @@ namespace MvcApplication4.Models
         
         [Display(Name = "נקבה ")]
         public bool Female { get; set; }
+
+
+
     }
 }

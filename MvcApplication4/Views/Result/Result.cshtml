@@ -1,23 +1,23 @@
-﻿@model MvcApplication4.Models.SearchModel
+﻿
+@model IEnumerable<string>
 
-@{
-    ViewBag.Title = "תוצאות החיפוש";
-}
 
 <h2>:תוצאות החיפוש</h2>
 
 
-<table border="1">
-<tr>
-<th>מספר להתקשרות</th>
-<th>שם</th>
-</tr>
-<tr>
-<td>050-5050505</td>
-<td>נטע</td>
-</tr>
-<tr>
-<td>052-1234567</td>
-<td>דבורה</td>
-</tr>
-</table>
+
+@foreach (var i in Model)
+{
+    <p>
+        @i <br />
+    </p>
+}
+
+@using (Html.BeginForm()) 
+{
+    <div>
+        <p>
+            <input type="submit" value="חזרה לדף החיפוש" />
+        </p>
+    </div>
+}

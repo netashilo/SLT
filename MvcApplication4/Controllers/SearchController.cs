@@ -5,18 +5,20 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.Security;
-using MvcApplication4.Models;
+using SLT.Models;
 using System.IO;
 
-namespace MvcApplication4.Controllers
+
+namespace SLT.Controllers
 {
     public class SearchController : Controller
     {
-        //
-        // GET: /Search/
+        public int flag = 0;
 
+        // GET: /Search/
         public ActionResult Search_trans()
         {
+            
             return View();
         }
 
@@ -26,19 +28,25 @@ namespace MvcApplication4.Controllers
         {
             if (ModelState.IsValid)
             {
-                  if(isExists(model))
-                  {
-                if (Url.IsLocalUrl(returnUrl) && returnUrl.Length > 1 && returnUrl.StartsWith("/")
-                    && !returnUrl.StartsWith("//") && !returnUrl.StartsWith("/\\"))
+                if (isExists(model) == true)
                 {
-                    return Redirect(returnUrl);
+                    if (Url.IsLocalUrl(returnUrl) && returnUrl.Length > 1 && returnUrl.StartsWith("/")
+                        && !returnUrl.StartsWith("//") && !returnUrl.StartsWith("/\\"))
+                    {
+                        return Redirect(returnUrl);
+                    }
+                    else
+                    { 
+                        return RedirectToAction("Result", "Result");
+                    }
+                   
                 }
+                else if(flag == 1)
+                    ModelState.AddModelError("", "");
                 else
-                { //return RedirectToAction("Index", "printend");
-                    
-                    return RedirectToAction("Result", "Result");
+                {
+                    return RedirectToAction("ResultNotFound", "Result");
                 }
-                  }
             }
             else
             {
@@ -47,72 +55,99 @@ namespace MvcApplication4.Controllers
 
             // If we got this far, something failed, redisplay form
             return View(model);
+
         }
 
         public Boolean isExists(SearchModel model)
         {
-            //if (!System.IO.File.Exists(@"C:\Users\oener\Documents\users.txt"))
-            //    return false;
+            int count = 0;
             string filePath = Server.MapPath(Url.Content("~/Content/trans.txt"));
-             string printFilePath = Server.MapPath(Url.Content("~/Content/toPrint.txt"));
+            string printFilePath = Server.MapPath(Url.Content("~/Content/toPrint.txt"));
+            string first, last; 
+            string[] items, lines = System.IO.File.ReadAllLines(filePath), matchTrans = new string[lines.Length];
+            bool isMatch = true;
+            StreamWriter sw = new StreamWriter(printFilePath);
 
-           // System.IO.StreamWriter file2 = new System.IO.StreamWriter(printFilePath);
-
-
-         string[] arrays={model.First, model.Last, model.Day, model.Hour, model.City, model.Sex};// put the searchModel values into an array
-      
-
-    bool flag=true;
-    string[] items;
-    
-    string[] lines= System.IO.File.ReadAllLines(filePath);
-
-        for (int i = 0; i < lines.Length; i++)
-          {
-
-             items= lines[i].Split('#');
-              for(int j=0;j<items.Length-1;j++)
-             {
-
-                  if (items[j]!=null)
-                  {
-                       if (arrays[j]!=items[j])
-                        {
-                            flag=false;
-                             break; 
-                        }
-                 }
-
+            matchTrans[0] = "000";
+            if (model.firstName == null)
+                first = "null";
+            else
+                first = model.firstName;
+            if (model.lastName == null)
+                last = "null";
+            else
+                last = model.lastName;
+            
+            // put the searchModel values into an array
+            string[] array = {first,last,model.Day,model.City,model.Sex,model.FromHour,model.ToHour,"null"};
+            
+            for( int i=0; i<lines.Length;i++)
+            while(i<lines.Length)
+            {
+                items = lines[i].Split('#');
+                isMatch = compare(items, array);
+                if (isMatch == true)
+                {
+                    if (isTransExists(matchTrans, items[8]) == false)
+                    {
+                        matchTrans[count] = items[8];
+                        sw.Write(items[0] + " " + items[1] + " " + items[7] + "\r\n");
+                        count++;
+                    }
+                    isMatch = false;
+                }
+                i++;
             }
+            sw.Close();
 
-
-          if (flag==true)    
-          { 
-              string final= arrays[0]+arrays[1]+arrays[6];
+            if (count > 0)
+                return true;
+            else
+                return false;
           
-
-               using (StreamWriter sw = System.IO.File.AppendText(printFilePath)) 
-                 {
-                   sw.WriteLine(final);
-               }
-
-           }
-
         }
 
- return true;
-}
+        public Boolean compare(string[] items, string[] arrays)
+        {
+            for (int i = 0; i < arrays.Length; i++)
+            {
+                if ((arrays[5] != "null") && (arrays[6] != "null"))
+                    if (hours(items, arrays) == false)
+                        return false;
+                if (arrays[i] != "null")
+                {
+                    if ((i == 5) || (i == 6))
+                        continue;
+                    if (arrays[i] != items[i])
+                        return false;
+                }
+            }
+            return true;
+        }
 
+        public Boolean hours(string[] items, string[] arrays)
+        {      
+            int num = Convert.ToInt32(items[5], 10);
+            int num2 = Convert.ToInt32(items[6], 10);
+            int numarr = Convert.ToInt32(arrays[5], 10);
+            int numarr2 = Convert.ToInt32(arrays[6], 10);
 
+            if (numarr > numarr2)//if to big from from
+            {
+                flag = 1;
+                return false;
+            }
+            if ((numarr <= num) && (numarr2 >= num2))
+                return true;
+            return false;
+        }
 
-           // string[] lines = System.IO.File.ReadAllLines(filePath);
-
-           // for (int i = 0; i < lines.Length; i++)
-            //    if (lines[i] == model.Day && lines[i + 1] == model.City && lines[i + 2] == model.Gender)
-            //        return true;
-           //     else
-           //         i += 2;
-          //  return false;
+        public Boolean isTransExists(string[] matchTrans, string id)
+        {
+            for (int i = 0; i < matchTrans.Length; i++)
+                if (matchTrans[i] == id)
+                    return true;
+            return false;
         }
     }
-
+}
